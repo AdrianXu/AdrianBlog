@@ -1,35 +1,67 @@
----
-layout: default
-date: 2014-10-19 23:51
----
-<div class="row">
-  <div class="col-xs-12 col-sm-12 col-md-offset-1 col-md-10 col-lg-offset-2 col-lg-8">
-    {% for post in site.posts %}
-      <div class="blog-short">
-        <h3><a href="{{post.url | prepend: site.baseurl}}">{{post.title}}</a></h3>
-		<div>
-		  <small>
-			<i class="fa fa-calendar"></i>
-			<time>
-        {{ post.date | date:'%A, %B %d, %Y'}}
-			</time>
-		  </small>
-         </div>
-		<div class="margin10">
-          <small>
-            <i class="fa fa-tag"></i>
-            {% for tag in post.tags %}
-              <span class="label label-primary">{{tag}}</span>
-            {% endfor %}
-          </small>
-        </div>
-        {% if post.thumbnail %}
-          <img src="{{post.thumbnail}}"
-          alt="{{post.title}}"  class="pull-left img-responsive thumb margin10 img-thumbnail" />
-        {% endif %}
-        <article class="excerpt">{{post.excerpt}}</article>
-        <a class="pull-right marginBottom10" href="{{post.url | prepend: site.baseurl }}">Read More</a>
-      </div>
-    {% endfor %}
-  </div>
-</div>
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Adrianblog : JAVA多线程-关闭线程">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Adrianblog</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/AdrianXu/AdrianBlog">View on GitHub</a>
+
+          <h1 id="project_title">Adrianblog</h1>
+          <h2 id="project_tagline">JAVA多线程-关闭线程</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/AdrianXu/AdrianBlog/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/AdrianXu/AdrianBlog/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>多线程是提高程序运行效率的一种有效手段，他能让程序同时执行多个操作，但是由于一个程序的多个线程间可能利用同一资源或者互相影响，所以如何让他们协调的工作是一个很大的问题。</p>
+
+<p>在我所经历的多线程使用中，首先遇到的问题就是如何把他们安全的关闭。</p>
+
+<p>遇到的场景是这样的，一个功能线程间隔执行（无限循环加间隔休眠），或是重复执行（使用计时器）。在对其进行关闭时可能遇到关闭指令发出（主线程对子线程执行interrupt命令）时，子线程正在运行，此时有可能抛出异常。</p>
+
+<p>这时候系统很容易发生各种无法预知的错误，为了避免这种错误，我首先使用了一种方法：</p>
+
+<p>自标记法</p>
+
+<p>首先，在线程类里加入一个boolean类型属性，用于标记它的运行状态。一旦需要关闭这个线程，我不是对其执行interrupt而是将他的标记设为false，而线程自身每次运行之前以及运行完某一步操作时，我都让线程自身检测一下自身的标记，如果一旦检测到标记变为了false，就对自身执行interrupt方法，这样就能安全的关闭自己了。</p>
+
+<p>但是这种方法在一些使用HHS或springMVC的项目时，由于有时会使用注解之类的东西，很难去确定是否访问到了自身的标记，所以我又使用了另一种方法：</p>
+
+<p>主线程标记法</p>
+
+<p>因为主线程大多是唯一的，将标记设在主线程，而子线程参照主线程的标记判断是否关闭自己，这样就避免了使用注释时造成子线程不便访问的问题。</p>
+
+<p>归根到底，避免线程关闭异常主要是要使用自关闭，此时由于线程只是在关闭自己而不会执行其他操作，肯定是不会发生异常的，而判断是否进行自关闭，则只需一个参照的标记即可。</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Adrianblog maintained by <a href="https://github.com/AdrianXu">AdrianXu</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
